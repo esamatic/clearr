@@ -13,7 +13,8 @@ parseKesayoRegistrations <- function(input_file = file.choose()) {
                     "1..PELILUOKKA", "1..PELILUOKASSA.nelinpeliparin.nimi",
                     "2..PELILUOKKA", "2..PELILUOKASSA.nelinpeliparin.nimi",
                     "3..PELILUOKKA", "3..PELILUOKASSA.nelinpeliparin.nimi",
-                    Terveiset="Terveiset,.risut.ja.ruusut.kilpailujÃ¤rjestÃ¤jille."))
+                    "Terveiset,.risut.ja.ruusut.kilpailujärjestäjille.")) %>%
+    dplyr::rename(Terveiset = "Terveiset,.risut.ja.ruusut.kilpailujärjestäjille.")
 
   person_cols <-
     dplyr::select(x, c("Etunimi", "Sukunimi", "Lempinimi", "Seura", "Terveiset"))
@@ -31,29 +32,34 @@ parseKesayoRegistrations <- function(input_file = file.choose()) {
 fixData <- function(x) {
   x <-
     x %>%
+    dplyr::mutate(Seura = replace(Seura, is.na(Seura), "")) %>%
     dplyr::mutate(Seura = fixClub(Seura)) %>%
+    dplyr::mutate(Seura = replace(Seura, Seura %in% c("ei", "-"), "")) %>%
     dplyr::mutate(Etunimi = ifelse(is.na(Lempinimi), Etunimi, paste0(Etunimi, ' "', Lempinimi, '"'))) %>%
+    dplyr::mutate(Terveiset = replace(Terveiset, is.na(Terveiset), "")) %>%
+    dplyr::mutate(Peliluokka = replace(Peliluokka, is.na(Peliluokka), "")) %>%
+    dplyr::mutate(Peliluokka = fixClass(Peliluokka)) %>%
+    dplyr::mutate(Pari = replace(Pari, is.na(Pari), "")) %>%
     dplyr::select(-Lempinimi) %>%
-    dplyr::mutate(Seura = replace(Seura, is.na(Seura) | Seura == "ei", "")) %>%
     dplyr::arrange(Peliluokka, Sukunimi, Etunimi) %>%
-    dplyr::filter(!(is.na(Peliluokka) & is.na(Pari))) %>%
-    dplyr::mutate(Terveiset = replace(Terveiset, is.na(Terveiset), ""))
+    dplyr::filter(!(Peliluokka == "" & Pari == ""))
   return(x)
 }
 
 fixClub <- function(x) {
-  club <- tolower(trimws(x))
-  mapping <- list("Clear" = c("clear", "clera", "clear?"),
+  mapping <- list(
+                  "Clear" = c("clear", "clera", "clear?"),
                   "ESB" = c("esb", "espoon sulkapallo badminton"),
                   "Drive" = c("drive", "sulkapalloseura drive"),
                   "Euran Veivi" = c("euran veivi"),
                   "Geneve Badminton Club" = c("geneve badminton club"),
-                  "HÃ¤mSu" = c("hÃ¤msu", "hÃ¤meenlinnan sulkapalloilijat"),
+                  "HBC"=c("hbc"),
+                  "HämSu" = c("hämsu", "hämeenlinnan sulkapalloilijat"),
                   "HalSu" = c("halsu", "halikon sulkis"),
-                  "HanSu" = c("hansu"),
+                  "HanSu" = c("hansu", "bc hanhensulka"),
                   "HYSY" = c("hysy", "helsingin yliopiston sulkapalloyhdistys (hysy)"),
                   "Joen Sulka" = c("joen sulka"),
-                  "Juankosken PyrkivÃ¤"=c("juankosken pyrkivÃ¤"),
+                  "Juankosken Pyrkivä"=c("juankosken pyrkivä"),
                   "KaaSu" = c("kaasu", "kaarinan sulka"),
                   "Karjalohjan Sulka" = c("karjalohjan sulka"),
                   "Klaki" = c("klaki"),
@@ -62,26 +68,65 @@ fixClub <- function(x) {
                   "Lohjan Teho" = c("lohjan teho"),
                   "Loimaan Seudun Sulkis" = c("loimaan seudun sulkis"),
                   "NBC" = c("nbc"),
-                  "Ã–IF" = c("Ã¶if"),
+                  "ÖIF" = c("öif"),
                   "Onnen Urheilijat" = c("onnen urheiljat"),
                   "OSUKO" = c("osuko"),
                   "ParBa" = c("parba", "paraisten badminton"),
-                  "PoPy" = c("porin pyrintÃ¶"),
-                  "PuiU" = c("puiu", "puistolan urheilijat", "puistolan urheilijat (puiu)"),
-                  "RaSu" = c("rasu", "raision sulkapalloilijat", "raision sulkapallolijat"),
+                  "Parks"= c("parks"),
+                  "PoPy" = c("porin pyrintö"),
+                  "PuiU" = c("puiu", "puistolan urheilijat", "puistolan urheilijat (puiu)", "puistolan sulkapallo"),
+                  "RaSu" = c("rasu", "raision sulkapalloilijat", "raision sulkapallolijat", "raisusulka"),
                   "SaSu" = c("savon sulka"),
-                  "Sjuba" = c("sjuba, sjundeÃ¥ badmington boys and girls"),
+                  "Sjuba" = c("sjuba, sjundeå badmington boys and girls"),
                   "Smash" = c("smash sulkis"),
                   "Sulkaset" = c("sulkaset"),
-                  "TS" = c("tapion sulka", "ts"),
+                  "TS" = c("tapion sulka", "ts", "tapionsulka"),
                   "ToiVal" = c("toival", "toijalan valpas", "toijalan valpas ry"),
-                  "TuPy" = c("pyrkivÃ¤", "tupy", "turun pyrkivÃ¤"),
+                  "TuPy" = c("pyrkivä", "tupy", "turun pyrkivä"),
                   "TuSu" = c("turun sulka"),
                   "TVS" = c("tvs"),
                   "Vaadin" = c("vaadin", "vaadin oy"),
                   "Vaasan Sulkis" = c("vasaan sulkis", "vaasansulkis"))
-  for (new_name in names(mapping)) {
-    club[club %in% mapping[[new_name]]] <- new_name
+  return(mapValues(tolower(trimws(x)), mapping))
+}
+
+fixClass <- function(x) {
+  mapping <- list("SN-H"="SEKANELINPELI Harraste",
+                  "VL-H"="AIKUINEN/LAPSI nelinpeli HARRASTELUOKKA",
+                  "VL-K"="AIKUINEN/LAPSI nelinpeli KILPALUOKKA",
+                  "MK-50H"="Miesten KAKSINPELI +50 Harraste",
+                  "MK-H"="Miesten KAKSINPELI Harraste",
+                  "MN-H"="Miesten NELINPELI Harraste",
+                  "NK-H"="Naisten KAKSINPELI Harraste",
+                  "NN-H"="Naisten NELINPELI Harraste")
+  return(mapValues(x, mapping))
+}
+
+mapValues <- function(x, mapping, factor_conversion = c("character", "integer"),
+         na_to_na = TRUE, not_mapped = NULL) {
+  ## factors are always converted
+  if (is.factor(x)) {
+    factor_conversion <- match.arg(factor_conversion)
+    x <- as(x, factor_conversion)
+    msg("Converted factor data to ", factor_conversion, type = "warning")
   }
-  return(club)
+  ## sanity check
+  if (max(table(unlist(mapping), useNA = "ifany")) > 1) {
+    msg("Some value(s) are mapped more than once", type = "warning")
+  }
+  data_class <- class(x)
+  ## map
+  mapped_values <- x
+  for (new_value in names(mapping)) {
+    if (new_value == "NA" && na_to_na) {
+      new_value_casted <- NA
+    } else {
+      new_value_casted <- as(new_value, data_class)
+    }
+    mapped_values[x %in% mapping[[new_value]]] <- new_value_casted
+  }
+  if (!is.null(not_mapped)) {
+    mapped_values[!(mapped_values %in% names(mapping))] <- as(not_mapped, data_class)
+  }
+  return(mapped_values)
 }
