@@ -1,3 +1,5 @@
+library(tidyverse)
+
 workflow <- function() {
   x <-
     parseKesayoRegistrations() %>%
@@ -9,12 +11,13 @@ workflow <- function() {
 parseKesayoRegistrations <- function(input_file = file.choose()) {
   x <-
     openxlsx::read.xlsx(xlsxFile = input_file, sheet = 1) %>%
+    setNames(c("Aikaleima", "Etunimi", "Sukunimi", "Lempinimi", "Seura")) %>%
     dplyr::select(c("Etunimi", "Sukunimi", "Lempinimi", "Seura",
                     "1..PELILUOKKA", "1..PELILUOKASSA.nelinpeliparin.nimi",
                     "2..PELILUOKKA", "2..PELILUOKASSA.nelinpeliparin.nimi",
                     "3..PELILUOKKA", "3..PELILUOKASSA.nelinpeliparin.nimi",
-                    "Terveiset,.risut.ja.ruusut.kilpailujärjestäjille.")) %>%
-    dplyr::rename(Terveiset = "Terveiset,.risut.ja.ruusut.kilpailujärjestäjille.")
+                    "Terveiset,.risut.ja.ruusut.kilpailuj?rjest?jille.")) %>%
+    dplyr::rename(Terveiset = "Terveiset,.risut.ja.ruusut.kilpailuj?rjest?jille.")
 
   person_cols <-
     dplyr::select(x, c("Etunimi", "Sukunimi", "Lempinimi", "Seura", "Terveiset"))
@@ -54,12 +57,12 @@ fixClub <- function(x) {
                   "Euran Veivi" = c("euran veivi"),
                   "Geneve Badminton Club" = c("geneve badminton club"),
                   "HBC"=c("hbc"),
-                  "HämSu" = c("hämsu", "hämeenlinnan sulkapalloilijat"),
+                  "H?mSu" = c("h?msu", "h?meenlinnan sulkapalloilijat"),
                   "HalSu" = c("halsu", "halikon sulkis"),
                   "HanSu" = c("hansu", "bc hanhensulka"),
                   "HYSY" = c("hysy", "helsingin yliopiston sulkapalloyhdistys (hysy)"),
                   "Joen Sulka" = c("joen sulka"),
-                  "Juankosken Pyrkivä"=c("juankosken pyrkivä"),
+                  "Juankosken Pyrkiv?"=c("juankosken pyrkiv?"),
                   "KaaSu" = c("kaasu", "kaarinan sulka"),
                   "Karjalohjan Sulka" = c("karjalohjan sulka"),
                   "Klaki" = c("klaki"),
@@ -68,21 +71,21 @@ fixClub <- function(x) {
                   "Lohjan Teho" = c("lohjan teho"),
                   "Loimaan Seudun Sulkis" = c("loimaan seudun sulkis"),
                   "NBC" = c("nbc"),
-                  "ÖIF" = c("öif"),
+                  "?IF" = c("?if"),
                   "Onnen Urheilijat" = c("onnen urheiljat"),
                   "OSUKO" = c("osuko"),
                   "ParBa" = c("parba", "paraisten badminton"),
                   "Parks"= c("parks"),
-                  "PoPy" = c("porin pyrintö"),
+                  "PoPy" = c("porin pyrint?"),
                   "PuiU" = c("puiu", "puistolan urheilijat", "puistolan urheilijat (puiu)", "puistolan sulkapallo"),
                   "RaSu" = c("rasu", "raision sulkapalloilijat", "raision sulkapallolijat", "raisusulka"),
                   "SaSu" = c("savon sulka"),
-                  "Sjuba" = c("sjuba, sjundeå badmington boys and girls"),
+                  "Sjuba" = c("sjuba, sjunde? badmington boys and girls"),
                   "Smash" = c("smash sulkis"),
                   "Sulkaset" = c("sulkaset"),
                   "TS" = c("tapion sulka", "ts", "tapionsulka"),
                   "ToiVal" = c("toival", "toijalan valpas", "toijalan valpas ry"),
-                  "TuPy" = c("pyrkivä", "tupy", "turun pyrkivä"),
+                  "TuPy" = c("pyrkiv?", "tupy", "turun pyrkiv?"),
                   "TuSu" = c("turun sulka"),
                   "TVS" = c("tvs"),
                   "Vaadin" = c("vaadin", "vaadin oy"),
