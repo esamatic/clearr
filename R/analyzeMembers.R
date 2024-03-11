@@ -30,18 +30,4 @@ check_member_data <- function(x) {
   if (ok) cat("Everything ok")
 }
 
-fix_member_data <- function(x) {
-    x$age[x$name == "Kirsi Laitinen"] <- 45
-    x$age[x$name == "Markus Merne"] <- 55
-    x$age[x$name == "Arto Nieminen"] <- 55
-    x$age[x$name == "Jarkko Rantanen"] <- 28
-    x$age[x$name == "Joni Rintala"] <- 40
-    x$age[x$name == "Janne Soraluoma"] <- 46
-    x$age[x$name == "Justus Tanttari"] <- 10
-    x$age[x$name == "Tapio Ilmari Turunen"] <- 32
-    x$age[x$name == "Peppi Turvanen"] <- 10
-    x$age[x$name == "Teemu Vanhanen"] <- 47
-    x$age[x$name == "Veeti Järvinen"] <- 10
-    x
-}
 
